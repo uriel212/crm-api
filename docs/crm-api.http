@@ -1,0 +1,99 @@
+### Flujos principales de crm-api (IntelliJ HTTP Client: ejecuta cada bloque con el botón ▶).
+### Primero el login: guarda el token en la variable global {{token}}.
+
+### 1. Login como vendedora (Carla)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{"email": "carla.mendoza@crmventas.test", "password": "Password123"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### 2. Usuario del token
+GET http://localhost:8080/api/auth/me
+Authorization: Bearer {{token}}
+
+### 3. Buscar clientes
+GET http://localhost:8080/api/clientes?q=garza&page=0&size=20&sort=nombre
+Authorization: Bearer {{token}}
+
+### 4. Vista 360 del cliente 1
+GET http://localhost:8080/api/clientes/1/resumen
+Authorization: Bearer {{token}}
+
+### 5. Crear una oportunidad
+POST http://localhost:8080/api/oportunidades
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"clienteId": 1, "titulo": "Licencias adicionales", "montoEstimado": 15000}
+
+> {% client.global.set("oportunidadId", response.body.id); %}
+
+### 6. Cotizar una venta (no guarda nada)
+POST http://localhost:8080/api/ventas/calculo
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"detalles": [{"productoId": 12, "cantidad": 5}]}
+
+### 7. Registrar la venta y ganar la oportunidad (descuenta stock y otorga puntos)
+POST http://localhost:8080/api/ventas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"clienteId": 1, "oportunidadId": {{oportunidadId}}, "detalles": [{"productoId": 12, "cantidad": 5}]}
+
+### 8. Historial de la oportunidad (debe terminar en GANADA)
+GET http://localhost:8080/api/oportunidades/{{oportunidadId}}/historial
+Authorization: Bearer {{token}}
+
+### 9. Puntos del cliente
+GET http://localhost:8080/api/clientes/1/puntos
+Authorization: Bearer {{token}}
+
+### 10. Canjear puntos por un producto
+POST http://localhost:8080/api/clientes/1/puntos/canjes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"productoId": 13, "cantidad": 1}
+
+### 11. Avance de las metas del mes
+GET http://localhost:8080/api/metas?anio=2026&mes=10
+Authorization: Bearer {{token}}
+
+### 12. Tablero (KPIs del mes en curso)
+GET http://localhost:8080/api/reportes/dashboard
+Authorization: Bearer {{token}}
+
+### 13. Ventas por mes del año
+GET http://localhost:8080/api/reportes/ventas/por-mes?anio=2026
+Authorization: Bearer {{token}}
+
+### 14. Abrir un ticket de soporte
+POST http://localhost:8080/api/tickets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"clienteId": 1, "asunto": "Licencia no activa", "prioridad": "ALTA"}
+
+### 15. Login como gerente (para campañas, metas y reportes de equipo)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{"email": "luis.ramirez@crmventas.test", "password": "Password123"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### 16. Generar destinatarios de la campaña 4 (idempotente)
+POST http://localhost:8080/api/campanas/4/destinatarios/generar
+Authorization: Bearer {{token}}
+
+### 17. Efectividad de campañas
+GET http://localhost:8080/api/reportes/campanas/efectividad
+Authorization: Bearer {{token}}
+
+### 18. Rendimiento de vendedores del mes
+GET http://localhost:8080/api/reportes/rendimiento-vendedores
+Authorization: Bearer {{token}}
